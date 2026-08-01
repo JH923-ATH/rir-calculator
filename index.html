@@ -411,6 +411,159 @@
     font-weight: 800;
     margin-top: 1px;
   }
+
+  .exercise-name-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 16.5px;
+    font-weight: 700;
+    padding: 4px 2px;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    text-align: left;
+  }
+  .exercise-name-btn .exercise-name-text.placeholder {
+    color: var(--muted-2);
+    font-weight: 500;
+  }
+  .exercise-name-btn svg { flex-shrink: 0; color: var(--muted-2); }
+
+  .picker-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 8, 18, 0.65);
+    backdrop-filter: blur(2px);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .picker-sheet {
+    width: 100%;
+    max-width: 640px;
+    max-height: 82vh;
+    background: var(--bg-soft);
+    border: 1px solid var(--card-border);
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lift);
+    animation: sheet-up 0.18s ease-out;
+  }
+  @keyframes sheet-up {
+    from { transform: translateY(16px); opacity: 0.6; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .picker-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .picker-header input {
+    flex: 1;
+    background: rgba(4, 10, 22, 0.55);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 12px;
+    font-family: inherit;
+  }
+  .picker-header input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.15);
+  }
+  .picker-close {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    color: var(--muted);
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+  }
+  .picker-list {
+    overflow-y: auto;
+    padding: 8px 8px calc(16px + env(safe-area-inset-bottom));
+  }
+  .picker-category {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted-2);
+    font-weight: 700;
+    padding: 12px 10px 6px;
+  }
+  .picker-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 14.5px;
+    font-weight: 500;
+    padding: 11px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .picker-item:hover, .picker-item:active { background: var(--card-hover); }
+  .picker-item .remove-custom {
+    color: var(--danger);
+    font-size: 13px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .picker-item .remove-custom:hover { background: rgba(251,113,133,0.12); }
+  .picker-add-custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    background: rgba(56,189,248,0.08);
+    border: 1px solid rgba(56,189,248,0.28);
+    color: var(--accent-strong);
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 12px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    margin: 8px 2px 4px;
+  }
+  .picker-add-custom:hover { background: rgba(56,189,248,0.14); }
+  .picker-empty {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13.5px;
+    padding: 24px 16px;
+  }
 </style>
 </head>
 <body>
@@ -470,13 +623,46 @@
   </div>
 </div>
 
+<div class="picker-overlay" id="pickerOverlay" style="display:none;">
+  <div class="picker-sheet">
+    <div class="picker-header">
+      <input type="text" id="pickerSearch" placeholder="Search or add an exercise..." autocomplete="off">
+      <button class="picker-close" id="pickerClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="picker-list" id="pickerList"></div>
+  </div>
+</div>
+
 <script>
 const STORAGE_KEY = 'rir-calc-exercises-v1';
 const SETTINGS_KEY = 'rir-calc-settings-v1';
+const CUSTOM_EXERCISES_KEY = 'rir-calc-custom-exercises-v1';
+
+const EXERCISE_LIBRARY = {
+  Chest: ['Barbell Bench Press', 'Incline Barbell Press', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Chest Fly', 'Cable Crossover', 'Dips', 'Push-Up'],
+  Back: ['Deadlift', 'Barbell Row', 'Pendlay Row', 'Dumbbell Row', 'T-Bar Row', 'Seated Cable Row', 'Lat Pulldown', 'Pull-Up', 'Chin-Up'],
+  Legs: ['Back Squat', 'Front Squat', 'Leg Press', 'Romanian Deadlift', 'Leg Curl', 'Leg Extension', 'Walking Lunge', 'Bulgarian Split Squat', 'Hip Thrust', 'Calf Raise'],
+  Shoulders: ['Overhead Press', 'Dumbbell Shoulder Press', 'Arnold Press', 'Lateral Raise', 'Rear Delt Fly', 'Face Pull', 'Upright Row'],
+  Arms: ['Barbell Curl', 'Dumbbell Curl', 'Hammer Curl', 'Preacher Curl', 'Close-Grip Bench Press', 'Tricep Pushdown', 'Skull Crusher', 'Overhead Tricep Extension'],
+  Core: ['Plank', 'Cable Crunch', 'Hanging Leg Raise', 'Ab Wheel Rollout'],
+};
 
 let state = {
   exercises: [],
 };
+
+let customExercises = [];
+let pickerExerciseId = null;
+
+function loadCustomExercises() {
+  try {
+    customExercises = JSON.parse(localStorage.getItem(CUSTOM_EXERCISES_KEY) || '[]');
+  } catch (e) { customExercises = []; }
+}
+
+function saveCustomExercises() {
+  localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(customExercises));
+}
 
 function loadState() {
   try {
@@ -493,6 +679,8 @@ function loadState() {
   if (state.exercises.length === 0) {
     state.exercises.push(newExercise());
   }
+
+  loadCustomExercises();
 }
 
 function saveState() {
@@ -566,7 +754,10 @@ function render() {
 
     card.innerHTML = `
       <div class="card-top">
-        <input class="exercise-name" placeholder="Exercise name" value="${escapeHtml(ex.name)}" data-field="name">
+        <button type="button" class="exercise-name-btn" data-action="open-picker">
+          <span class="exercise-name-text${ex.name ? '' : ' placeholder'}">${ex.name ? escapeHtml(ex.name) : 'Select exercise'}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <button class="remove-btn" data-action="remove" aria-label="Remove exercise">&times;</button>
       </div>
 
@@ -652,13 +843,155 @@ document.getElementById('cards').addEventListener('input', (e) => {
 });
 
 document.getElementById('cards').addEventListener('click', (e) => {
-  if (e.target.dataset.action === 'remove') {
-    const card = e.target.closest('.card');
+  const removeBtn = e.target.closest('[data-action="remove"]');
+  if (removeBtn) {
+    const card = removeBtn.closest('.card');
     const id = parseFloat(card.dataset.id);
     state.exercises = state.exercises.filter(x => x.id !== id);
     saveState();
     render();
+    return;
   }
+
+  const pickerBtn = e.target.closest('[data-action="open-picker"]');
+  if (pickerBtn) {
+    const card = pickerBtn.closest('.card');
+    const id = parseFloat(card.dataset.id);
+    openPicker(id);
+  }
+});
+
+function openPicker(exerciseId) {
+  pickerExerciseId = exerciseId;
+  const overlay = document.getElementById('pickerOverlay');
+  const search = document.getElementById('pickerSearch');
+  overlay.style.display = 'flex';
+  search.value = '';
+  renderPickerList('');
+  setTimeout(() => search.focus(), 0);
+}
+
+function closePicker() {
+  pickerExerciseId = null;
+  document.getElementById('pickerOverlay').style.display = 'none';
+}
+
+function selectExercise(name) {
+  const ex = state.exercises.find(x => x.id === pickerExerciseId);
+  if (!ex) { closePicker(); return; }
+  ex.name = name;
+  saveState();
+  closePicker();
+  render();
+}
+
+function addCustomExercise(name) {
+  name = name.trim();
+  if (!name) return;
+  const exists = customExercises.some(n => n.toLowerCase() === name.toLowerCase()) ||
+    Object.values(EXERCISE_LIBRARY).flat().some(n => n.toLowerCase() === name.toLowerCase());
+  if (!exists) {
+    customExercises.push(name);
+    saveCustomExercises();
+  }
+  selectExercise(name);
+}
+
+function removeCustomExercise(name) {
+  customExercises = customExercises.filter(n => n !== name);
+  saveCustomExercises();
+  renderPickerList(document.getElementById('pickerSearch').value);
+}
+
+function renderPickerList(query) {
+  const listEl = document.getElementById('pickerList');
+  const q = query.trim().toLowerCase();
+  listEl.innerHTML = '';
+
+  const matchesQuery = (name) => name.toLowerCase().includes(q);
+
+  let anyResults = false;
+
+  if (customExercises.length) {
+    const filtered = customExercises.filter(matchesQuery);
+    if (filtered.length) {
+      anyResults = true;
+      const label = document.createElement('div');
+      label.className = 'picker-category';
+      label.textContent = 'Your custom exercises';
+      listEl.appendChild(label);
+      filtered.forEach(name => listEl.appendChild(buildPickerItem(name, true)));
+    }
+  }
+
+  Object.entries(EXERCISE_LIBRARY).forEach(([category, names]) => {
+    const filtered = names.filter(matchesQuery);
+    if (!filtered.length) return;
+    anyResults = true;
+    const label = document.createElement('div');
+    label.className = 'picker-category';
+    label.textContent = category;
+    listEl.appendChild(label);
+    filtered.forEach(name => listEl.appendChild(buildPickerItem(name, false)));
+  });
+
+  const exactMatch = q && (
+    customExercises.some(n => n.toLowerCase() === q) ||
+    Object.values(EXERCISE_LIBRARY).flat().some(n => n.toLowerCase() === q)
+  );
+
+  if (q && !exactMatch) {
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'picker-add-custom';
+    addBtn.textContent = `+ Add "${query.trim()}" as a custom exercise`;
+    addBtn.addEventListener('click', () => addCustomExercise(query.trim()));
+    listEl.appendChild(addBtn);
+  } else if (!anyResults) {
+    const empty = document.createElement('div');
+    empty.className = 'picker-empty';
+    empty.textContent = 'No exercises found.';
+    listEl.appendChild(empty);
+  }
+}
+
+function buildPickerItem(name, removable) {
+  const item = document.createElement('button');
+  item.type = 'button';
+  item.className = 'picker-item';
+
+  const label = document.createElement('span');
+  label.textContent = name;
+  item.appendChild(label);
+
+  if (removable) {
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-custom';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeCustomExercise(name);
+    });
+    item.appendChild(removeBtn);
+  }
+
+  item.addEventListener('click', () => selectExercise(name));
+  return item;
+}
+
+document.getElementById('pickerSearch').addEventListener('input', (e) => {
+  renderPickerList(e.target.value);
+});
+
+document.getElementById('pickerSearch').addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePicker();
+});
+
+document.getElementById('pickerClose').addEventListener('click', closePicker);
+
+document.getElementById('pickerOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closePicker();
 });
 
 document.getElementById('addBtn').addEventListener('click', () => {
