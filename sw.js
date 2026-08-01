@@ -1,9 +1,10 @@
-const CACHE_NAME = 'rir-calc-v1';
+const CACHE_NAME = 'rir-calc-v2';
 const ASSETS = [
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  './favicon.png',
 ];
 
 self.addEventListener('install', (event) => {

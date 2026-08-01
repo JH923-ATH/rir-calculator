@@ -4,172 +4,312 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>RIR Calculator</title>
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#0b1220">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --card-border: #334155;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
+    --bg: #0b1220;
+    --bg-soft: #0f172a;
+    --card: #141f38;
+    --card-hover: #17233f;
+    --card-border: #253352;
+    --text: #eef2f9;
+    --muted: #93a0bd;
+    --muted-2: #6b7794;
     --accent: #38bdf8;
+    --accent-strong: #7dd3fc;
     --conservative: #4ade80;
+    --conservative-bg: rgba(74, 222, 128, 0.1);
+    --conservative-border: rgba(74, 222, 128, 0.28);
     --aggressive: #fb923c;
-    --danger: #f87171;
+    --aggressive-bg: rgba(251, 146, 60, 0.1);
+    --aggressive-border: rgba(251, 146, 60, 0.28);
+    --danger: #fb7185;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -8px rgba(0,0,0,0.5);
+    --shadow-lift: 0 2px 4px rgba(0,0,0,0.4), 0 16px 32px -12px rgba(0,0,0,0.6);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
   }
   * { box-sizing: border-box; }
+  html { -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
-    background: var(--bg);
+    min-height: 100vh;
+    background:
+      radial-gradient(720px 420px at 12% -8%, rgba(56,189,248,0.16), transparent 60%),
+      radial-gradient(560px 360px at 100% 0%, rgba(125,211,252,0.08), transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    padding-bottom: 100px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-bottom: 112px;
+    -webkit-font-smoothing: antialiased;
   }
+
   header {
-    padding: 20px 16px 12px;
+    padding: 28px 20px 18px;
     position: sticky;
     top: 0;
-    background: var(--bg);
     z-index: 10;
-    border-bottom: 1px solid var(--card-border);
+    background: linear-gradient(to bottom, rgba(11,18,32,0.98) 70%, rgba(11,18,32,0));
+    backdrop-filter: blur(10px);
   }
-  h1 {
-    font-size: 20px;
-    margin: 0 0 4px;
-  }
-  .subtitle {
-    font-size: 13px;
-    color: var(--muted);
-    margin: 0;
-  }
-  .settings-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    align-items: center;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .settings-row input {
-    width: 50px;
-  }
-  main {
-    padding: 12px;
+  .header-inner {
     max-width: 640px;
     margin: 0 auto;
   }
-  .card {
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(155deg, #16233f, #0c1526);
+    border: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px -4px rgba(56,189,248,0.35);
+  }
+  h1 {
+    font-size: 21px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0 0 16px;
+    line-height: 1.4;
+  }
+  .settings-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 12px;
-    position: relative;
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
   }
+  .settings-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .settings-item input {
+    width: 44px;
+    background: var(--bg-soft);
+    border: 1px solid var(--card-border);
+    border-radius: 7px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 6px;
+    text-align: center;
+    font-family: inherit;
+  }
+  .settings-item input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.15);
+  }
+  .settings-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--card-border);
+  }
+
+  main {
+    padding: 18px 16px 8px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: linear-gradient(155deg, var(--card), var(--bg-soft));
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 14px;
+    position: relative;
+    box-shadow: var(--shadow-card);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card:focus-within {
+    border-color: rgba(56,189,248,0.4);
+    box-shadow: var(--shadow-lift);
+  }
+
   .card-top {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--card-border);
   }
   .exercise-name {
     flex: 1;
     background: transparent;
     border: none;
-    border-bottom: 1px solid var(--card-border);
     color: var(--text);
-    font-size: 16px;
-    font-weight: 600;
-    padding: 6px 2px;
+    font-size: 16.5px;
+    font-weight: 700;
+    padding: 4px 2px;
+    font-family: inherit;
+    letter-spacing: -0.01em;
   }
-  .exercise-name:focus {
-    outline: none;
-    border-bottom-color: var(--accent);
+  .exercise-name::placeholder {
+    color: var(--muted-2);
+    font-weight: 500;
   }
+  .exercise-name:focus { outline: none; }
   .remove-btn {
-    background: none;
-    border: none;
+    background: rgba(251, 113, 133, 0.08);
+    border: 1px solid transparent;
     color: var(--danger);
-    font-size: 18px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 15px;
     line-height: 1;
-    padding: 4px 8px;
     cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, transform 0.1s ease;
   }
+  .remove-btn:hover { background: rgba(251, 113, 133, 0.18); }
+  .remove-btn:active { transform: scale(0.92); }
+
   .field-group {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .field-group-label {
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--muted);
-    margin: 10px 0 4px;
+    letter-spacing: 0.07em;
+    color: var(--muted-2);
+    font-weight: 700;
+    margin: 12px 0 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
+  .field-group-label::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--muted-2);
+    flex-shrink: 0;
+  }
+  .field-group-label.new::before { background: var(--accent); }
+
   .field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
   }
   .field label {
     font-size: 11px;
     color: var(--muted);
+    font-weight: 500;
   }
   .field input {
-    background: #0f172a;
+    background: rgba(4, 10, 22, 0.55);
     border: 1px solid var(--card-border);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     color: var(--text);
     font-size: 16px;
-    padding: 8px;
+    font-weight: 600;
+    padding: 9px 10px;
     width: 100%;
+    font-family: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
+  .field input::placeholder { color: var(--muted-2); font-weight: 500; }
   .field input:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.15);
   }
+  .field input:disabled {
+    color: var(--accent-strong);
+    -webkit-text-fill-color: var(--accent-strong);
+    opacity: 1;
+    border-color: var(--card-border);
+    background: rgba(56,189,248,0.06);
+  }
+
   .results {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 12px;
   }
   .result-box {
-    border-radius: 10px;
-    padding: 10px;
+    border-radius: var(--radius-md);
+    padding: 12px 10px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
   }
   .result-box.conservative {
-    background: rgba(74, 222, 128, 0.12);
-    border: 1px solid rgba(74, 222, 128, 0.35);
+    background: var(--conservative-bg);
+    border: 1px solid var(--conservative-border);
   }
   .result-box.aggressive {
-    background: rgba(251, 146, 60, 0.12);
-    border: 1px solid rgba(251, 146, 60, 0.35);
+    background: var(--aggressive-bg);
+    border: 1px solid var(--aggressive-border);
   }
   .result-label {
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-bottom: 2px;
+    letter-spacing: 0.06em;
+    margin-bottom: 3px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
   .result-box.conservative .result-label { color: var(--conservative); }
   .result-box.aggressive .result-label { color: var(--aggressive); }
   .result-value {
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
   }
   .result-value.empty {
-    color: var(--muted);
-    font-size: 16px;
-    font-weight: 400;
+    color: var(--muted-2);
+    font-size: 14px;
+    font-weight: 500;
   }
+
   .actions {
     position: fixed;
     bottom: 0;
@@ -177,67 +317,157 @@
     right: 0;
     display: flex;
     gap: 10px;
-    padding: 12px;
-    background: linear-gradient(to top, var(--bg) 70%, transparent);
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 65%, transparent);
+    z-index: 10;
+  }
+  .actions-inner {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    gap: 10px;
+    width: 100%;
   }
   button.primary {
     flex: 1;
-    background: var(--accent);
-    color: #0f172a;
+    background: linear-gradient(135deg, var(--accent), #0ea5e9);
+    color: #04101f;
     border: none;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     padding: 14px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 6px 16px -6px rgba(56,189,248,0.55);
+    transition: transform 0.1s ease, box-shadow 0.15s ease;
   }
+  button.primary:active { transform: translateY(1px) scale(0.99); box-shadow: 0 3px 10px -6px rgba(56,189,248,0.5); }
   button.secondary {
-    background: transparent;
+    background: var(--card);
     color: var(--muted);
     border: 1px solid var(--card-border);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     padding: 14px 16px;
     font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s ease, color 0.15s ease;
   }
+  button.secondary:hover { background: var(--card-hover); color: var(--text); }
+
   .empty-state {
     text-align: center;
     color: var(--muted);
     font-size: 14px;
-    padding: 40px 20px;
+    padding: 56px 24px;
+    border: 1px dashed var(--card-border);
+    border-radius: var(--radius-lg);
+    background: rgba(20, 31, 56, 0.35);
   }
+  .empty-state-icon {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 14px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .empty-state strong {
+    display: block;
+    color: var(--text);
+    font-size: 15px;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+
   .info {
-    font-size: 12px;
+    display: flex;
+    gap: 10px;
+    font-size: 12.5px;
     color: var(--muted);
-    line-height: 1.5;
-    padding: 0 4px 4px;
+    line-height: 1.55;
+    padding: 14px 16px;
+    margin-top: 4px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+  }
+  .info-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(56,189,248,0.15);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    margin-top: 1px;
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>RIR Calculator</h1>
-  <p class="subtitle">Week 1 starting weights from last mesocycle's top sets (Epley formula)</p>
-  <div class="settings-row">
-    <span>Default target RIR</span>
-    <input type="number" id="defaultRir" value="3" min="0" max="10" step="0.5">
-    <span>&middot; rounds to nearest</span>
-    <input type="number" id="roundTo" value="5" min="1" max="10" step="1">
-    <span>lbs</span>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="9" width="3" height="6" rx="1" fill="#7dd3fc"/>
+          <rect x="5.5" y="7.5" width="2.5" height="9" rx="1" fill="#38bdf8"/>
+          <rect x="7.8" y="10.8" width="8.4" height="2.4" rx="1.2" fill="#38bdf8"/>
+          <rect x="16" y="7.5" width="2.5" height="9" rx="1" fill="#38bdf8"/>
+          <rect x="20" y="9" width="3" height="6" rx="1" fill="#7dd3fc"/>
+        </svg>
+      </div>
+      <h1>RIR Calculator</h1>
+    </div>
+    <p class="subtitle">Week 1 starting weights from last mesocycle's top sets, via the Epley formula.</p>
+    <div class="settings-bar">
+      <div class="settings-item">
+        <span>Default RIR</span>
+        <input type="number" id="defaultRir" value="3" min="0" max="10" step="0.5">
+      </div>
+      <div class="settings-divider"></div>
+      <div class="settings-item">
+        <span>Round to</span>
+        <input type="number" id="roundTo" value="5" min="1" max="10" step="1">
+        <span>lb</span>
+      </div>
+    </div>
   </div>
 </header>
 <main>
   <div id="cards"></div>
   <div id="emptyState" class="empty-state" style="display:none;">
-    No exercises yet. Tap "Add Exercise" to start building Week 1 of your new mesocycle.
+    <div class="empty-state-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="9" width="3" height="6" rx="1" fill="#7dd3fc"/>
+        <rect x="5.5" y="7.5" width="2.5" height="9" rx="1" fill="#38bdf8"/>
+        <rect x="7.8" y="10.8" width="8.4" height="2.4" rx="1.2" fill="#38bdf8"/>
+        <rect x="16" y="7.5" width="2.5" height="9" rx="1" fill="#38bdf8"/>
+        <rect x="20" y="9" width="3" height="6" rx="1" fill="#7dd3fc"/>
+      </svg>
+    </div>
+    <strong>No exercises yet</strong>
+    Tap "Add Exercise" to start building Week 1 of your new mesocycle.
   </div>
-  <p class="info">
-    Enter the best top set from the end of your last mesocycle (weight, reps, RIR) for each lift, plus the target rep count for Week 1. Conservative assumes one extra RIR of buffer; Aggressive targets your set default RIR directly. Both round to the nearest increment above.
-  </p>
+  <div class="info">
+    <span class="info-icon">i</span>
+    <span>Enter the best top set from the end of your last mesocycle (weight, reps, RIR) for each lift, plus the target rep count for Week 1. Conservative assumes one extra RIR of buffer; Aggressive targets your default RIR directly. Both round to the nearest increment above.</span>
+  </div>
 </main>
 <div class="actions">
-  <button class="secondary" id="clearAllBtn">Clear all</button>
-  <button class="primary" id="addBtn">+ Add Exercise</button>
+  <div class="actions-inner">
+    <button class="secondary" id="clearAllBtn">Clear all</button>
+    <button class="primary" id="addBtn">+ Add Exercise</button>
+  </div>
 </div>
 
 <script>
@@ -356,7 +586,7 @@ function render() {
         </div>
       </div>
 
-      <div class="field-group-label">New mesocycle &mdash; Week 1 target</div>
+      <div class="field-group-label new">New mesocycle &mdash; Week 1 target</div>
       <div class="field-group">
         <div class="field">
           <label>Target reps</label>
