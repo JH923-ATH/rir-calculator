@@ -7,6 +7,13 @@ A small PWA that calculates Week 1 starting weights for a new training mesocycle
 
 ## What it does
 
+The app has two modes, switched via a toggle at the top:
+
+- **Week 1 Planner** — the original tool (below)
+- **1RM Calculator** — a standalone estimator (see [1RM Calculator](#1rm-calculator))
+
+### Week 1 Planner
+
 For each exercise, you pick a lift and enter:
 
 - **Exercise** — chosen from a built-in picker (grouped by muscle group, with search). You can also add your own custom exercises, which are saved and reusable across cards.
@@ -26,6 +33,16 @@ Then it back-calculates two suggested Week 1 weights, both rounded to the neares
 - **Conservative** — assumes one extra RIR of buffer (slightly lighter, safer first-session weight)
 
 Entries, custom exercises, and settings (default RIR, rounding increment) persist in the browser via `localStorage`, so you can close the tab and come back mid-setup.
+
+### 1RM Calculator
+
+A standalone one-rep-max estimator. For each lift you pick an exercise and enter the **weight** and **reps** of a set taken to (or near) failure. It estimates your 1RM with the plain Epley formula:
+
+```
+e1RM = weight * (1 + reps / 30)
+```
+
+and shows a table of common training percentages (95% down to 60%), each rounded to the nearest increment. Planner entries and 1RM entries are stored separately, and the active mode is remembered between visits.
 
 ## Files
 
