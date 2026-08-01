@@ -40,6 +40,7 @@
   }
   * { box-sizing: border-box; }
   html { -webkit-tap-highlight-color: transparent; }
+  body.picker-open { overflow: hidden; }
   body {
     margin: 0;
     min-height: 100vh;
@@ -449,6 +450,7 @@
     width: 100%;
     max-width: 640px;
     max-height: 82vh;
+    max-height: 82dvh;
     background: var(--bg-soft);
     border: 1px solid var(--card-border);
     border-bottom: none;
@@ -527,6 +529,7 @@
     cursor: pointer;
     font-family: inherit;
   }
+  .picker-item { min-height: 44px; }
   .picker-item:hover, .picker-item:active { background: var(--card-hover); }
   .picker-item .remove-custom {
     color: var(--danger);
@@ -866,6 +869,7 @@ function openPicker(exerciseId) {
   const overlay = document.getElementById('pickerOverlay');
   const search = document.getElementById('pickerSearch');
   overlay.style.display = 'flex';
+  document.body.classList.add('picker-open');
   search.value = '';
   renderPickerList('');
   setTimeout(() => search.focus(), 0);
@@ -874,6 +878,7 @@ function openPicker(exerciseId) {
 function closePicker() {
   pickerExerciseId = null;
   document.getElementById('pickerOverlay').style.display = 'none';
+  document.body.classList.remove('picker-open');
 }
 
 function selectExercise(name) {
