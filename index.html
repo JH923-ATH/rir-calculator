@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RIR Calculator</title>
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --conservative: #4ade80;
+    --aggressive: #fb923c;
+    --danger: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-bottom: 100px;
+  }
+  header {
+    padding: 20px 16px 12px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    border-bottom: 1px solid var(--card-border);
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+  }
+  .settings-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    align-items: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .settings-row input {
+    width: 50px;
+  }
+  main {
+    padding: 12px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .exercise-name {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--card-border);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 6px 2px;
+  }
+  .exercise-name:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+  }
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  .field-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .field-group-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 10px 0 4px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .field label {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .field input {
+    background: #0f172a;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 16px;
+    padding: 8px;
+    width: 100%;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .result-box {
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .result-box.conservative {
+    background: rgba(74, 222, 128, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.35);
+  }
+  .result-box.aggressive {
+    background: rgba(251, 146, 60, 0.12);
+    border: 1px solid rgba(251, 146, 60, 0.35);
+  }
+  .result-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .result-box.conservative .result-label { color: var(--conservative); }
+  .result-box.aggressive .result-label { color: var(--aggressive); }
+  .result-value {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .result-value.empty {
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 400;
+  }
+  .actions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+  }
+  button.primary {
+    flex: 1;
+    background: var(--accent);
+    color: #0f172a;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 40px 20px;
+  }
+  .info {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    padding: 0 4px 4px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>RIR Calculator</h1>
+  <p class="subtitle">Week 1 starting weights from last mesocycle's top sets (Epley formula)</p>
+  <div class="settings-row">
+    <span>Default target RIR</span>
+    <input type="number" id="defaultRir" value="3" min="0" max="10" step="0.5">
+    <span>&middot; rounds to nearest</span>
+    <input type="number" id="roundTo" value="5" min="1" max="10" step="1">
+    <span>lbs</span>
+  </div>
+</header>
+<main>
+  <div id="cards"></div>
+  <div id="emptyState" class="empty-state" style="display:none;">
+    No exercises yet. Tap "Add Exercise" to start building Week 1 of your new mesocycle.
+  </div>
+  <p class="info">
+    Enter the best top set from the end of your last mesocycle (weight, reps, RIR) for each lift, plus the target rep count for Week 1. Conservative assumes one extra RIR of buffer; Aggressive targets your set default RIR directly. Both round to the nearest increment above.
+  </p>
+</main>
+<div class="actions">
+  <button class="secondary" id="clearAllBtn">Clear all</button>
+  <button class="primary" id="addBtn">+ Add Exercise</button>
+</div>
+
+<script>
+const STORAGE_KEY = 'rir-calc-exercises-v1';
+const SETTINGS_KEY = 'rir-calc-settings-v1';
+
+let state = {
+  exercises: [],
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) state.exercises = JSON.parse(saved);
+  } catch (e) { state.exercises = []; }
+
+  try {
+    const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    if (settings.defaultRir != null) document.getElementById('defaultRir').value = settings.defaultRir;
+    if (settings.roundTo != null) document.getElementById('roundTo').value = settings.roundTo;
+  } catch (e) {}
+
+  if (state.exercises.length === 0) {
+    state.exercises.push(newExercise());
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.exercises));
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+    defaultRir: document.getElementById('defaultRir').value,
+    roundTo: document.getElementById('roundTo').value,
+  }));
+}
+
+function newExercise() {
+  return {
+    id: Date.now() + Math.random(),
+    name: '',
+    lastWeight: '',
+    lastReps: '',
+    lastRir: '',
+    targetReps: '',
+    targetRir: document.getElementById('defaultRir') ? document.getElementById('defaultRir').value : '3',
+  };
+}
+
+function round(x, increment) {
+  return Math.round(x / increment) * increment;
+}
+
+function calc(ex) {
+  const w = parseFloat(ex.lastWeight);
+  const r = parseFloat(ex.lastReps);
+  const rir = parseFloat(ex.lastRir);
+  const tReps = parseFloat(ex.targetReps);
+  const tRir = parseFloat(ex.targetRir);
+  const roundTo = parseFloat(document.getElementById('roundTo').value) || 5;
+
+  if (!w || w <= 0 || r == null || isNaN(r) || r <= 0 || rir == null || isNaN(rir) ||
+      tReps == null || isNaN(tReps) || tReps <= 0 || tRir == null || isNaN(tRir)) {
+    return { e1rm: null, conservative: null, aggressive: null };
+  }
+
+  // Epley 1RM estimate, adjusted for reps-in-reserve at the time of the last set
+  const effectiveReps = r + rir;
+  const e1rm = w * (1 + effectiveReps / 30);
+
+  const targetWeight = (rirBuffer) => {
+    const effTargetReps = tReps + tRir + rirBuffer;
+    return e1rm / (1 + effTargetReps / 30);
+  };
+
+  const aggressive = round(targetWeight(0), roundTo);
+  const conservative = round(targetWeight(1), roundTo);
+
+  return { e1rm: e1rm, conservative, aggressive };
+}
+
+function render() {
+  const cardsEl = document.getElementById('cards');
+  const emptyEl = document.getElementById('emptyState');
+  cardsEl.innerHTML = '';
+
+  if (state.exercises.length === 0) {
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  state.exercises.forEach((ex) => {
+    const result = calc(ex);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.id = ex.id;
+
+    card.innerHTML = `
+      <div class="card-top">
+        <input class="exercise-name" placeholder="Exercise name" value="${escapeHtml(ex.name)}" data-field="name">
+        <button class="remove-btn" data-action="remove" aria-label="Remove exercise">&times;</button>
+      </div>
+
+      <div class="field-group-label">Last mesocycle &mdash; best top set</div>
+      <div class="field-group">
+        <div class="field">
+          <label>Weight (lbs)</label>
+          <input type="number" inputmode="decimal" placeholder="185" value="${ex.lastWeight}" data-field="lastWeight">
+        </div>
+        <div class="field">
+          <label>Reps</label>
+          <input type="number" inputmode="decimal" placeholder="8" value="${ex.lastReps}" data-field="lastReps">
+        </div>
+        <div class="field">
+          <label>RIR</label>
+          <input type="number" inputmode="decimal" placeholder="1" value="${ex.lastRir}" data-field="lastRir">
+        </div>
+      </div>
+
+      <div class="field-group-label">New mesocycle &mdash; Week 1 target</div>
+      <div class="field-group">
+        <div class="field">
+          <label>Target reps</label>
+          <input type="number" inputmode="decimal" placeholder="8" value="${ex.targetReps}" data-field="targetReps">
+        </div>
+        <div class="field">
+          <label>Target RIR</label>
+          <input type="number" inputmode="decimal" value="${ex.targetRir}" data-field="targetRir">
+        </div>
+        <div class="field">
+          <label>Est. 1RM</label>
+          <input type="text" value="${result.e1rm ? Math.round(result.e1rm) + ' lb' : '--'}" disabled>
+        </div>
+      </div>
+
+      <div class="results">
+        <div class="result-box conservative">
+          <div class="result-label">Conservative</div>
+          <div class="result-value ${result.conservative == null ? 'empty' : ''}">${result.conservative != null ? result.conservative + ' lb' : 'enter data'}</div>
+        </div>
+        <div class="result-box aggressive">
+          <div class="result-label">Aggressive</div>
+          <div class="result-value ${result.aggressive == null ? 'empty' : ''}">${result.aggressive != null ? result.aggressive + ' lb' : 'enter data'}</div>
+        </div>
+      </div>
+    `;
+
+    cardsEl.appendChild(card);
+  });
+}
+
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+document.getElementById('cards').addEventListener('input', (e) => {
+  const target = e.target;
+  const field = target.dataset.field;
+  if (!field) return;
+  const card = target.closest('.card');
+  const id = parseFloat(card.dataset.id);
+  const ex = state.exercises.find(x => x.id === id);
+  if (!ex) return;
+  ex[field] = target.value;
+  saveState();
+
+  // Re-render everything (keeps calcs in sync) but restore focus/cursor on the active field.
+  const activeField = field;
+  const activeId = id;
+  render();
+  const newCard = document.querySelector(`.card[data-id="${activeId}"]`);
+  if (newCard) {
+    const input = newCard.querySelector(`[data-field="${activeField}"]`);
+    if (input) {
+      input.focus();
+      const val = input.value;
+      input.value = '';
+      input.value = val;
+    }
+  }
+});
+
+document.getElementById('cards').addEventListener('click', (e) => {
+  if (e.target.dataset.action === 'remove') {
+    const card = e.target.closest('.card');
+    const id = parseFloat(card.dataset.id);
+    state.exercises = state.exercises.filter(x => x.id !== id);
+    saveState();
+    render();
+  }
+});
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  state.exercises.push(newExercise());
+  saveState();
+  render();
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+});
+
+document.getElementById('clearAllBtn').addEventListener('click', () => {
+  if (confirm('Clear all exercises?')) {
+    state.exercises = [newExercise()];
+    saveState();
+    render();
+  }
+});
+
+document.getElementById('defaultRir').addEventListener('change', () => { saveState(); render(); });
+document.getElementById('roundTo').addEventListener('change', () => { saveState(); render(); });
+
+loadState();
+render();
+
+// Register service worker for offline / installable support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
