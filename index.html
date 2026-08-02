@@ -311,6 +311,18 @@
     font-size: 14px;
     font-weight: 500;
   }
+  .calc-hint {
+    margin-top: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(251, 146, 60, 0.08);
+    border: 1px solid var(--aggressive-border);
+    color: var(--aggressive);
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+  }
 
   .actions {
     position: fixed;
@@ -888,9 +900,16 @@ function calc(ex) {
   const tRir = parseFloat(ex.targetRir);
   const roundTo = parseFloat(document.getElementById('roundTo').value) || 5;
 
-  if (!w || w <= 0 || r == null || isNaN(r) || r <= 0 || rir == null || isNaN(rir) ||
-      tReps == null || isNaN(tReps) || tReps <= 0 || tRir == null || isNaN(tRir)) {
-    return { e1rm: null, conservative: null, aggressive: null };
+  // Figure out which required fields are still missing so we can tell the user.
+  const missing = [];
+  if (!(w > 0)) missing.push('weight');
+  if (!(r > 0)) missing.push('reps');
+  if (ex.lastRir === '' || ex.lastRir == null || isNaN(rir)) missing.push('RIR');
+  if (!(tReps > 0)) missing.push('target reps');
+  if (ex.targetRir === '' || ex.targetRir == null || isNaN(tRir)) missing.push('target RIR');
+
+  if (missing.length) {
+    return { e1rm: null, conservative: null, aggressive: null, missing };
   }
 
   // Epley 1RM estimate, adjusted for reps-in-reserve at the time of the last set
@@ -905,7 +924,13 @@ function calc(ex) {
   const aggressive = round(targetWeight(0), roundTo);
   const conservative = round(targetWeight(1), roundTo);
 
-  return { e1rm: e1rm, conservative, aggressive };
+  return { e1rm: e1rm, conservative, aggressive, missing: [] };
+}
+
+function formatList(items) {
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return items[0] + ' and ' + items[1];
+  return items.slice(0, -1).join(', ') + ', and ' + items[items.length - 1];
 }
 
 function render() {
@@ -1052,13 +1077,14 @@ function renderPlanner() {
       <div class="results">
         <div class="result-box conservative">
           <div class="result-label">Conservative</div>
-          <div class="result-value ${result.conservative == null ? 'empty' : ''}">${result.conservative != null ? result.conservative + ' lb' : 'enter data'}</div>
+          <div class="result-value ${result.conservative == null ? 'empty' : ''}">${result.conservative != null ? result.conservative + ' lb' : '&mdash;'}</div>
         </div>
         <div class="result-box aggressive">
           <div class="result-label">Aggressive</div>
-          <div class="result-value ${result.aggressive == null ? 'empty' : ''}">${result.aggressive != null ? result.aggressive + ' lb' : 'enter data'}</div>
+          <div class="result-value ${result.aggressive == null ? 'empty' : ''}">${result.aggressive != null ? result.aggressive + ' lb' : '&mdash;'}</div>
         </div>
       </div>
+      ${result.missing && result.missing.length ? `<div class="calc-hint">Enter ${escapeHtml(formatList(result.missing))} to see your Week 1 weights.</div>` : ''}
     `;
 
     cardsEl.appendChild(card);
