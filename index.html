@@ -610,6 +610,18 @@
   }
 
   .field-group.two { grid-template-columns: 1fr 1fr; }
+  .field-group.one { grid-template-columns: 1fr; }
+
+  .bodyweight-note {
+    font-size: 12px;
+    color: var(--muted);
+    background: rgba(56,189,248,0.06);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    margin: 2px 0 4px;
+    line-height: 1.4;
+  }
 
   .onerm-result {
     display: flex;
@@ -731,7 +743,7 @@
     </div>
     <div class="info">
       <span class="info-icon">i</span>
-      <span>Enter the best top set from the end of your last mesocycle (weight, reps, RIR) for each lift, plus the target rep count for Week 1. Conservative assumes one extra RIR of buffer; Aggressive targets your default RIR directly. Both round to the nearest increment above.</span>
+      <span>Enter the best top set from the end of your last mesocycle (weight, reps, RIR) for each lift, plus the target rep count for Week 1. Conservative assumes one extra RIR of buffer; Aggressive targets your default RIR directly. Both round to the nearest increment above. Leave weight blank for a bodyweight exercise (pull-ups, dips, push-ups) &mdash; it'll solve for a target rep count instead of a load.</span>
     </div>
   </div>
 
@@ -900,16 +912,30 @@ function calc(ex) {
   const tRir = parseFloat(ex.targetRir);
   const roundTo = parseFloat(document.getElementById('roundTo').value) || 5;
 
+  // No weight entered => bodyweight exercise: the load is fixed, so we
+  // progress via reps rather than solving for a weight.
+  const bodyweight = !(w > 0);
+  const unit = bodyweight ? 'reps' : 'lb';
+
   // Figure out which required fields are still missing so we can tell the user.
   const missing = [];
-  if (!(w > 0)) missing.push('weight');
   if (!(r > 0)) missing.push('reps');
   if (ex.lastRir === '' || ex.lastRir == null || isNaN(rir)) missing.push('RIR');
-  if (!(tReps > 0)) missing.push('target reps');
   if (ex.targetRir === '' || ex.targetRir == null || isNaN(tRir)) missing.push('target RIR');
+  if (!bodyweight && !(tReps > 0)) missing.push('target reps');
 
   if (missing.length) {
-    return { e1rm: null, conservative: null, aggressive: null, missing };
+    return { e1rm: null, conservative: null, aggressive: null, missing, bodyweight, unit };
+  }
+
+  if (bodyweight) {
+    // Reps to failure ~= reps performed + reps left in reserve. To leave the
+    // target RIR in reserve, do that many fewer reps; conservative keeps one
+    // extra rep in reserve (an easier, safer first session).
+    const failureReps = r + rir;
+    const aggressive = Math.max(0, Math.round(failureReps - tRir));
+    const conservative = Math.max(0, Math.round(failureReps - tRir - 1));
+    return { e1rm: null, conservative, aggressive, missing: [], bodyweight: true, unit };
   }
 
   // Epley 1RM estimate, adjusted for reps-in-reserve at the time of the last set
@@ -924,7 +950,7 @@ function calc(ex) {
   const aggressive = round(targetWeight(0), roundTo);
   const conservative = round(targetWeight(1), roundTo);
 
-  return { e1rm: e1rm, conservative, aggressive, missing: [] };
+  return { e1rm: e1rm, conservative, aggressive, missing: [], bodyweight: false, unit };
 }
 
 function formatList(items) {
@@ -1045,8 +1071,8 @@ function renderPlanner() {
       <div class="field-group-label">Last mesocycle &mdash; best top set</div>
       <div class="field-group">
         <div class="field">
-          <label>Weight (lbs)</label>
-          <input type="number" inputmode="decimal" placeholder="185" value="${ex.lastWeight}" data-field="lastWeight">
+          <label>Weight (lbs, optional)</label>
+          <input type="number" inputmode="decimal" placeholder="bodyweight" value="${ex.lastWeight}" data-field="lastWeight">
         </div>
         <div class="field">
           <label>Reps</label>
@@ -1057,34 +1083,37 @@ function renderPlanner() {
           <input type="number" inputmode="decimal" placeholder="1" value="${ex.lastRir}" data-field="lastRir">
         </div>
       </div>
+      ${result.bodyweight ? '<div class="bodyweight-note">No weight entered &mdash; treating as a bodyweight exercise and solving for Week 1 reps instead of load.</div>' : ''}
 
       <div class="field-group-label new">New mesocycle &mdash; Week 1 target</div>
-      <div class="field-group">
+      <div class="field-group${result.bodyweight ? ' one' : ''}">
+        ${result.bodyweight ? '' : `
         <div class="field">
           <label>Target reps</label>
           <input type="number" inputmode="decimal" placeholder="8" value="${ex.targetReps}" data-field="targetReps">
-        </div>
+        </div>`}
         <div class="field">
           <label>Target RIR</label>
           <input type="number" inputmode="decimal" value="${ex.targetRir}" data-field="targetRir">
         </div>
+        ${result.bodyweight ? '' : `
         <div class="field">
           <label>Est. 1RM</label>
           <input type="text" value="${result.e1rm ? Math.round(result.e1rm) + ' lb' : '--'}" disabled>
-        </div>
+        </div>`}
       </div>
 
       <div class="results">
         <div class="result-box conservative">
           <div class="result-label">Conservative</div>
-          <div class="result-value ${result.conservative == null ? 'empty' : ''}">${result.conservative != null ? result.conservative + ' lb' : '&mdash;'}</div>
+          <div class="result-value ${result.conservative == null ? 'empty' : ''}">${result.conservative != null ? result.conservative + ' ' + result.unit : '&mdash;'}</div>
         </div>
         <div class="result-box aggressive">
           <div class="result-label">Aggressive</div>
-          <div class="result-value ${result.aggressive == null ? 'empty' : ''}">${result.aggressive != null ? result.aggressive + ' lb' : '&mdash;'}</div>
+          <div class="result-value ${result.aggressive == null ? 'empty' : ''}">${result.aggressive != null ? result.aggressive + ' ' + result.unit : '&mdash;'}</div>
         </div>
       </div>
-      ${result.missing && result.missing.length ? `<div class="calc-hint">Enter ${escapeHtml(formatList(result.missing))} to see your Week 1 weights.</div>` : ''}
+      ${result.missing && result.missing.length ? `<div class="calc-hint">Enter ${escapeHtml(formatList(result.missing))} to see your Week 1 ${result.bodyweight ? 'reps' : 'weights'}.</div>` : ''}
     `;
 
     cardsEl.appendChild(card);

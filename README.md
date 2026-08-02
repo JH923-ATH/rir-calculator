@@ -32,6 +32,8 @@ Then it back-calculates two suggested Week 1 weights, both rounded to the neares
 - **Aggressive** — targets your set default RIR directly
 - **Conservative** — assumes one extra RIR of buffer (slightly lighter, safer first-session weight)
 
+**Bodyweight exercises:** leave the weight field blank (e.g. pull-ups, dips, push-ups) and the planner switches to solving for a **target rep count** instead of a load — reps to failure (last reps + last RIR) minus the RIR you want in reserve, floored at 0.
+
 Entries, custom exercises, and settings (default RIR, rounding increment) persist in the browser via `localStorage`, so you can close the tab and come back mid-setup.
 
 ### 1RM Calculator
