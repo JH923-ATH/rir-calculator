@@ -1,13 +1,13 @@
 {
-  "name": "RIR Calculator",
-  "short_name": "RIR Calc",
-  "description": "Epley-based starting weight calculator for new mesocycles",
+  "name": "TopSet",
+  "short_name": "TopSet",
+  "description": "RIR-based Week 1 planner and 1RM estimator, via the Epley formula",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#0f1513",
+  "theme_color": "#0f1513",
   "icons": [
     {
       "src": "icon-192.png",

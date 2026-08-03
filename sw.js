@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rir-calc-v2';
+const CACHE_NAME = 'topset-v1';
 const ASSETS = [
   './index.html',
   './manifest.json',
